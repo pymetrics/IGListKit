@@ -10,8 +10,8 @@
 
 #import <vector>
 
-#import <IGListDiffKit/IGListAssert.h>
-#import <IGListKit/IGListCollectionViewDelegateLayout.h>
+#import "IGListAssert.h"
+#import "IGListCollectionViewDelegateLayout.h"
 
 #import "UIScrollView+IGListKit.h"
 
@@ -273,7 +273,7 @@ static void adjustZIndexForAttributes(UICollectionViewLayoutAttributes *attribut
 
 - (UICollectionViewLayoutAttributes *)layoutAttributesForItemAtIndexPath:(NSIndexPath *)indexPath {
     IGAssertMainThread();
-    IGParameterAssert(indexPath != nil);
+    NSCParameterAssert(indexPath != nil);
 
     UICollectionViewLayoutAttributes *attributes = _attributesCache[indexPath];
     if (attributes != nil) {
@@ -297,7 +297,7 @@ static void adjustZIndexForAttributes(UICollectionViewLayoutAttributes *attribut
 
 - (UICollectionViewLayoutAttributes *)layoutAttributesForSupplementaryViewOfKind:(NSString *)elementKind atIndexPath:(NSIndexPath *)indexPath {
     IGAssertMainThread();
-    IGParameterAssert(indexPath != nil);
+    NSCParameterAssert(indexPath != nil);
 
     UICollectionViewLayoutAttributes *attributes = _supplementaryAttributesCache[elementKind][indexPath];
     if (attributes != nil) {
@@ -525,16 +525,16 @@ static void adjustZIndexForAttributes(UICollectionViewLayoutAttributes *attribut
         for (NSInteger item = 0; item < itemCount; item++) {
             NSIndexPath *indexPath = [NSIndexPath indexPathForItem:item inSection:section];
             const CGSize size = [delegate collectionView:collectionView layout:self sizeForItemAtIndexPath:indexPath];
-            
-            IGAssert(CGSizeGetLengthInDirection(size, fixedDirection) <= paddedLengthInFixedDirection
-                     || fabs(CGSizeGetLengthInDirection(size, fixedDirection) - paddedLengthInFixedDirection) < FLT_EPSILON,
-                     @"%@ of item %li in section %li (%.0f pt) must be less than or equal to container (%.0f pt) accounting for section insets %@",
-                     self.scrollDirection == UICollectionViewScrollDirectionVertical ? @"Width" : @"Height",
-                     (long)item,
-                     (long)section,
-                     CGSizeGetLengthInDirection(size, fixedDirection),
-                     CGRectGetLengthInDirection(contentInsetAdjustedCollectionViewBounds, fixedDirection),
-                     NSStringFromUIEdgeInsets(insets));
+
+            NSString *log = [NSString stringWithFormat:@"%@ of item %li in section %li (%.0f pt) must be less than or equal to container (%.0f pt) accounting for section insets %@",
+                             self.scrollDirection == UICollectionViewScrollDirectionVertical ? @"Width" : @"Height",
+                             (long)item,
+                             (long)section,
+                             CGSizeGetLengthInDirection(size, fixedDirection),
+                             CGRectGetLengthInDirection(contentInsetAdjustedCollectionViewBounds, fixedDirection),
+                             NSStringFromUIEdgeInsets(insets)];
+            NSCAssert(CGSizeGetLengthInDirection(size, fixedDirection) <= paddedLengthInFixedDirection
+                     || fabs(CGSizeGetLengthInDirection(size, fixedDirection) - paddedLengthInFixedDirection) < FLT_EPSILON, log);
             
             CGFloat itemLengthInFixedDirection = MIN(CGSizeGetLengthInDirection(size, fixedDirection), paddedLengthInFixedDirection);
             

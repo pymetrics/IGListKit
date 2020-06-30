@@ -7,9 +7,9 @@
 
 #import "IGListAdapterInternal.h"
 
-#import <IGListDiffKit/IGListAssert.h>
-#import <IGListKit/IGListAdapterUpdater.h>
-#import <IGListKit/IGListSupplementaryViewSource.h>
+#import "IGListAssert.h"
+#import "IGListAdapterUpdater.h"
+#import "IGListSupplementaryViewSource.h"
 
 #import "IGListArrayUtilsInternal.h"
 #import "IGListDebugger.h"
@@ -35,7 +35,7 @@
                  viewController:(UIViewController *)viewController
                workingRangeSize:(NSInteger)workingRangeSize {
     IGAssertMainThread();
-    IGParameterAssert(updater);
+    NSCParameterAssert(updater);
 
     if (self = [super init]) {
         NSPointerFunctions *keyFunctions = [updater objectLookupPointerFunctions];
@@ -175,7 +175,7 @@
         scrollPosition:(UICollectionViewScrollPosition)scrollPosition
               animated:(BOOL)animated {
     IGAssertMainThread();
-    IGParameterAssert(object != nil);
+    NSCParameterAssert(object != nil);
 
     const NSInteger section = [self sectionForObject:object];
     if (section == NSNotFound) {
@@ -387,7 +387,7 @@
 
 - (void)reloadObjects:(NSArray *)objects {
     IGAssertMainThread();
-    IGParameterAssert(objects);
+    NSCParameterAssert(objects);
 
     NSMutableIndexSet *sections = [NSMutableIndexSet new];
 
@@ -418,14 +418,14 @@
 
 - (void)addUpdateListener:(id<IGListAdapterUpdateListener>)updateListener {
     IGAssertMainThread();
-    IGParameterAssert(updateListener != nil);
+    NSCParameterAssert(updateListener != nil);
 
     [_updateListeners addObject:updateListener];
 }
 
 - (void)removeUpdateListener:(id<IGListAdapterUpdateListener>)updateListener {
     IGAssertMainThread();
-    IGParameterAssert(updateListener != nil);
+    NSCParameterAssert(updateListener != nil);
 
     [_updateListeners removeObject:updateListener];
 }
@@ -447,21 +447,21 @@
 
 - (NSInteger)sectionForSectionController:(IGListSectionController *)sectionController {
     IGAssertMainThread();
-    IGParameterAssert(sectionController != nil);
+    NSCParameterAssert(sectionController != nil);
 
     return [self.sectionMap sectionForSectionController:sectionController];
 }
 
 - (IGListSectionController *)sectionControllerForObject:(id)object {
     IGAssertMainThread();
-    IGParameterAssert(object != nil);
+    NSCParameterAssert(object != nil);
 
     return [self.sectionMap sectionControllerForObject:object];
 }
 
 - (id)objectForSectionController:(IGListSectionController *)sectionController {
     IGAssertMainThread();
-    IGParameterAssert(sectionController != nil);
+    NSCParameterAssert(sectionController != nil);
 
     const NSInteger section = [self.sectionMap sectionForSectionController:sectionController];
     return [self.sectionMap objectForSection:section];
@@ -475,7 +475,7 @@
 
 - (NSInteger)sectionForObject:(id)item {
     IGAssertMainThread();
-    IGParameterAssert(item != nil);
+    NSCParameterAssert(item != nil);
 
     return [self.sectionMap sectionForObject:item];
 }
@@ -517,7 +517,7 @@
 
 - (NSArray<UICollectionViewCell *> *)visibleCellsForObject:(id)object {
     IGAssertMainThread();
-    IGParameterAssert(object != nil);
+    NSCParameterAssert(object != nil);
 
     const NSInteger section = [self.sectionMap sectionForObject:object];
     if (section == NSNotFound) {
@@ -571,7 +571,7 @@
 // this method is what updates the "source of truth"
 // this should only be called just before the collection view is updated
 - (void)_updateObjects:(NSArray *)objects dataSource:(id<IGListAdapterDataSource>)dataSource {
-    IGParameterAssert(dataSource != nil);
+    NSCParameterAssert(dataSource != nil);
 
     // Should be the first thing called in this function.
     _isInObjectUpdateTransaction = YES;
@@ -737,8 +737,8 @@
 
 - (void)mapView:(UICollectionReusableView *)view toSectionController:(IGListSectionController *)sectionController {
     IGAssertMainThread();
-    IGParameterAssert(view != nil);
-    IGParameterAssert(sectionController != nil);
+    NSCParameterAssert(view != nil);
+    NSCParameterAssert(sectionController != nil);
     [_viewSectionControllerMap setObject:sectionController forKey:view];
 }
 
@@ -867,8 +867,8 @@
 
 - (NSInteger)indexForCell:(UICollectionViewCell *)cell sectionController:(nonnull IGListSectionController *)sectionController {
     IGAssertMainThread();
-    IGParameterAssert(cell != nil);
-    IGParameterAssert(sectionController != nil);
+    NSCParameterAssert(cell != nil);
+    NSCParameterAssert(sectionController != nil);
     NSIndexPath *indexPath = [self.collectionView indexPathForCell:cell];
     IGAssert(indexPath == nil
              || indexPath.section == [self sectionForSectionController:sectionController],
@@ -879,7 +879,7 @@
 - (__kindof UICollectionViewCell *)cellForItemAtIndex:(NSInteger)index
                                     sectionController:(IGListSectionController *)sectionController {
     IGAssertMainThread();
-    IGParameterAssert(sectionController != nil);
+    NSCParameterAssert(sectionController != nil);
 
     // if this is accessed while a cell is being dequeued or displaying working range elements, just return nil
     if (_isDequeuingCell || _isSendingWorkingRangeDisplayUpdates) {
@@ -946,7 +946,7 @@
           sectionController:(IGListSectionController *)sectionController
                    animated:(BOOL)animated {
     IGAssertMainThread();
-    IGParameterAssert(sectionController != nil);
+    NSCParameterAssert(sectionController != nil);
     NSIndexPath *indexPath = [self indexPathForSectionController:sectionController index:index usePreviousIfInUpdateBlock:NO];
     [self.collectionView deselectItemAtIndexPath:indexPath animated:animated];
 }
@@ -956,7 +956,7 @@
                  animated:(BOOL)animated
            scrollPosition:(UICollectionViewScrollPosition)scrollPosition {
     IGAssertMainThread();
-    IGParameterAssert(sectionController != nil);
+    NSCParameterAssert(sectionController != nil);
     NSIndexPath *indexPath = [self indexPathForSectionController:sectionController index:index usePreviousIfInUpdateBlock:NO];
     [self.collectionView selectItemAtIndexPath:indexPath animated:animated scrollPosition:scrollPosition];
 }
@@ -966,9 +966,9 @@
                                          forSectionController:(IGListSectionController *)sectionController
                                                       atIndex:(NSInteger)index {
     IGAssertMainThread();
-    IGParameterAssert(sectionController != nil);
-    IGParameterAssert(cellClass != nil);
-    IGParameterAssert(index >= 0);
+    NSCParameterAssert(sectionController != nil);
+    NSCParameterAssert(cellClass != nil);
+    NSCParameterAssert(index >= 0);
     UICollectionView *collectionView = self.collectionView;
     IGAssert(collectionView != nil, @"Dequeueing cell of class %@ with reuseIdentifier %@ from section controller %@ without a collection view at index %li", NSStringFromClass(cellClass), reuseIdentifier, sectionController, (long)index);
     NSString *identifier = IGListReusableViewIdentifier(cellClass, nil, reuseIdentifier);
@@ -990,8 +990,8 @@
                                                               forSectionController:(IGListSectionController *)sectionController
                                                                            atIndex:(NSInteger)index {
     IGAssertMainThread();
-    IGParameterAssert(sectionController != nil);
-    IGParameterAssert(identifier.length > 0);
+    NSCParameterAssert(sectionController != nil);
+    NSCParameterAssert(identifier.length > 0);
     UICollectionView *collectionView = self.collectionView;
     IGAssert(collectionView != nil, @"Reloading adapter without a collection view.");
     NSIndexPath *indexPath = [self indexPathForSectionController:sectionController index:index usePreviousIfInUpdateBlock:NO];
@@ -1003,9 +1003,9 @@
                                     forSectionController:(IGListSectionController *)sectionController
                                                  atIndex:(NSInteger)index {
     IGAssertMainThread();
-    IGParameterAssert([nibName length] > 0);
-    IGParameterAssert(sectionController != nil);
-    IGParameterAssert(index >= 0);
+    NSCParameterAssert([nibName length] > 0);
+    NSCParameterAssert(sectionController != nil);
+    NSCParameterAssert(index >= 0);
     UICollectionView *collectionView = self.collectionView;
     IGAssert(collectionView != nil, @"Dequeueing cell with nib name %@ and bundle %@ from section controller %@ without a collection view at index %li.", nibName, bundle, sectionController, (long)index);
     NSIndexPath *indexPath = [self indexPathForSectionController:sectionController index:index usePreviousIfInUpdateBlock:NO];
@@ -1022,10 +1022,10 @@
                                                                         class:(Class)viewClass
                                                                       atIndex:(NSInteger)index {
     IGAssertMainThread();
-    IGParameterAssert(elementKind.length > 0);
-    IGParameterAssert(sectionController != nil);
-    IGParameterAssert(viewClass != nil);
-    IGParameterAssert(index >= 0);
+    NSCParameterAssert(elementKind.length > 0);
+    NSCParameterAssert(sectionController != nil);
+    NSCParameterAssert(viewClass != nil);
+    NSCParameterAssert(index >= 0);
     UICollectionView *collectionView = self.collectionView;
     IGAssert(collectionView != nil, @"Dequeueing cell of class %@ from section controller %@ without a collection view at index %li with supplementary view %@", NSStringFromClass(viewClass), sectionController, (long)index, elementKind);
     NSString *identifier = IGListReusableViewIdentifier(viewClass, elementKind, nil);
@@ -1042,10 +1042,10 @@
                                                                        forSectionController:(IGListSectionController *)sectionController
                                                                                     atIndex:(NSInteger)index {
     IGAssertMainThread();
-    IGParameterAssert(elementKind.length > 0);
-    IGParameterAssert(identifier.length > 0);
-    IGParameterAssert(sectionController != nil);
-    IGParameterAssert(index >= 0);
+    NSCParameterAssert(elementKind.length > 0);
+    NSCParameterAssert(identifier.length > 0);
+    NSCParameterAssert(sectionController != nil);
+    NSCParameterAssert(index >= 0);
     UICollectionView *collectionView = self.collectionView;
     IGAssert(collectionView != nil, @"Dequeueing Supplementary View from storyboard of kind %@ with identifier %@ for section controller %@ without a collection view at index %li", elementKind, identifier, sectionController, (long)index);
     NSIndexPath *indexPath = [self indexPathForSectionController:sectionController index:index usePreviousIfInUpdateBlock:NO];
@@ -1058,8 +1058,8 @@
                                                                        bundle:(NSBundle *)bundle
                                                                       atIndex:(NSInteger)index {
     IGAssertMainThread();
-    IGParameterAssert([nibName length] > 0);
-    IGParameterAssert([elementKind length] > 0);
+    NSCParameterAssert([nibName length] > 0);
+    NSCParameterAssert([elementKind length] > 0);
     UICollectionView *collectionView = self.collectionView;
     IGAssert(collectionView != nil, @"Reloading adapter without a collection view.");
     NSIndexPath *indexPath = [self indexPathForSectionController:sectionController index:index usePreviousIfInUpdateBlock:NO];
@@ -1073,7 +1073,7 @@
 
 - (void)performBatchAnimated:(BOOL)animated updates:(void (^)(id<IGListBatchContext>))updates completion:(void (^)(BOOL))completion {
     IGAssertMainThread();
-    IGParameterAssert(updates != nil);
+    NSCParameterAssert(updates != nil);
     IGAssert(self.collectionView != nil, @"Performing batch updates without a collection view.");
 
     [self _enterBatchUpdates];
@@ -1098,7 +1098,7 @@
                    scrollPosition:(UICollectionViewScrollPosition)scrollPosition
                          animated:(BOOL)animated {
     IGAssertMainThread();
-    IGParameterAssert(sectionController != nil);
+    NSCParameterAssert(sectionController != nil);
 
     NSIndexPath *indexPath = [self indexPathForSectionController:sectionController index:index usePreviousIfInUpdateBlock:NO];
     [self.collectionView scrollToItemAtIndexPath:indexPath atScrollPosition:scrollPosition animated:animated];
@@ -1132,8 +1132,8 @@
 
 - (void)reloadInSectionController:(IGListSectionController *)sectionController atIndexes:(NSIndexSet *)indexes {
     IGAssertMainThread();
-    IGParameterAssert(indexes != nil);
-    IGParameterAssert(sectionController != nil);
+    NSCParameterAssert(indexes != nil);
+    NSCParameterAssert(sectionController != nil);
     UICollectionView *collectionView = self.collectionView;
     IGAssert(collectionView != nil, @"Tried to reload the adapter from %@ without a collection view at indexes %@.", sectionController, indexes);
 
@@ -1170,8 +1170,8 @@
 
 - (void)insertInSectionController:(IGListSectionController *)sectionController atIndexes:(NSIndexSet *)indexes {
     IGAssertMainThread();
-    IGParameterAssert(indexes != nil);
-    IGParameterAssert(sectionController != nil);
+    NSCParameterAssert(indexes != nil);
+    NSCParameterAssert(sectionController != nil);
     UICollectionView *collectionView = self.collectionView;
     IGAssert(collectionView != nil, @"Inserting items from %@ without a collection view at indexes %@.", sectionController, indexes);
 
@@ -1186,8 +1186,8 @@
 
 - (void)deleteInSectionController:(IGListSectionController *)sectionController atIndexes:(NSIndexSet *)indexes {
     IGAssertMainThread();
-    IGParameterAssert(indexes != nil);
-    IGParameterAssert(sectionController != nil);
+    NSCParameterAssert(indexes != nil);
+    NSCParameterAssert(sectionController != nil);
     UICollectionView *collectionView = self.collectionView;
     IGAssert(collectionView != nil, @"Deleting items from %@ without a collection view at indexes %@.", sectionController, indexes);
 
@@ -1202,8 +1202,8 @@
 
 - (void)invalidateLayoutInSectionController:(IGListSectionController *)sectionController atIndexes:(NSIndexSet *)indexes {
     IGAssertMainThread();
-    IGParameterAssert(indexes != nil);
-    IGParameterAssert(sectionController != nil);
+    NSCParameterAssert(indexes != nil);
+    NSCParameterAssert(sectionController != nil);
     UICollectionView *collectionView = self.collectionView;
     IGAssert(collectionView != nil, @"Invalidating items from %@ without a collection view at indexes %@.", sectionController, indexes);
 
@@ -1220,9 +1220,9 @@
 
 - (void)moveInSectionController:(IGListSectionController *)sectionController fromIndex:(NSInteger)fromIndex toIndex:(NSInteger)toIndex {
     IGAssertMainThread();
-    IGParameterAssert(sectionController != nil);
-    IGParameterAssert(fromIndex >= 0);
-    IGParameterAssert(toIndex >= 0);
+    NSCParameterAssert(sectionController != nil);
+    NSCParameterAssert(fromIndex >= 0);
+    NSCParameterAssert(toIndex >= 0);
     UICollectionView *collectionView = self.collectionView;
     IGAssert(collectionView != nil, @"Moving items from %@ without a collection view from index %li to index %li.",
              sectionController, (long)fromIndex, (long)toIndex);
@@ -1239,7 +1239,7 @@
 
 - (void)reloadSectionController:(IGListSectionController *)sectionController {
     IGAssertMainThread();
-    IGParameterAssert(sectionController != nil);
+    NSCParameterAssert(sectionController != nil);
     UICollectionView *collectionView = self.collectionView;
     IGAssert(collectionView != nil, @"Reloading items from %@ without a collection view.", sectionController);
 
@@ -1258,9 +1258,9 @@
                                fromIndex:(NSInteger)fromIndex
                                  toIndex:(NSInteger)toIndex NS_AVAILABLE_IOS(9_0) {
     IGAssertMainThread();
-    IGParameterAssert(sectionController != nil);
-    IGParameterAssert(fromIndex >= 0);
-    IGParameterAssert(toIndex >= 0);
+    NSCParameterAssert(sectionController != nil);
+    NSCParameterAssert(fromIndex >= 0);
+    NSCParameterAssert(toIndex >= 0);
     UICollectionView *collectionView = self.collectionView;
     IGAssert(collectionView != nil, @"Moving section %@ without a collection view from index %li to index %li.",
              sectionController, (long)fromIndex, (long)toIndex);
@@ -1303,9 +1303,9 @@
                                  fromIndex:(NSInteger)fromIndex
                                    toIndex:(NSInteger)toIndex NS_AVAILABLE_IOS(9_0) {
     IGAssertMainThread();
-    IGParameterAssert(sectionController != nil);
-    IGParameterAssert(fromIndex >= 0);
-    IGParameterAssert(toIndex >= 0);
+    NSCParameterAssert(sectionController != nil);
+    NSCParameterAssert(fromIndex >= 0);
+    NSCParameterAssert(toIndex >= 0);
 
     [sectionController moveObjectFromIndex:fromIndex toIndex:toIndex];
 }

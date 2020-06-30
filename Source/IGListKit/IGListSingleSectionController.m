@@ -7,7 +7,7 @@
 
 #import "IGListSingleSectionController.h"
 
-#import <IGListDiffKit/IGListAssert.h>
+#import "IGListAssert.h"
 
 @interface IGListSingleSectionController ()
 
@@ -27,9 +27,9 @@
 - (instancetype)initWithCellClass:(Class)cellClass
                    configureBlock:(IGListSingleSectionCellConfigureBlock)configureBlock
                         sizeBlock:(IGListSingleSectionCellSizeBlock)sizeBlock {
-    IGParameterAssert(cellClass != nil);
-    IGParameterAssert(configureBlock != nil);
-    IGParameterAssert(sizeBlock != nil);
+    NSCParameterAssert(cellClass != nil);
+    NSCParameterAssert(configureBlock != nil);
+    NSCParameterAssert(sizeBlock != nil);
     if (self = [super init]) {
         _cellClass = cellClass;
         _configureBlock = [configureBlock copy];
@@ -42,9 +42,9 @@
                          bundle:(NSBundle *)bundle
                  configureBlock:(IGListSingleSectionCellConfigureBlock)configureBlock
                       sizeBlock:(IGListSingleSectionCellSizeBlock)sizeBlock {
-    IGParameterAssert(nibName != nil);
-    IGParameterAssert(configureBlock != nil);
-    IGParameterAssert(sizeBlock != nil);
+    NSCParameterAssert(nibName != nil);
+    NSCParameterAssert(configureBlock != nil);
+    NSCParameterAssert(sizeBlock != nil);
     if (self = [super init]) {
         _nibName = [nibName copy];
         _bundle = bundle;
@@ -57,9 +57,9 @@
 - (instancetype)initWithStoryboardCellIdentifier:(NSString *)identifier
                                   configureBlock:(IGListSingleSectionCellConfigureBlock)configureBlock
                                        sizeBlock:(IGListSingleSectionCellSizeBlock)sizeBlock {
-    IGParameterAssert(identifier.length > 0);
-    IGParameterAssert(configureBlock != nil);
-    IGParameterAssert(sizeBlock != nil);
+    NSCParameterAssert(identifier.length > 0);
+    NSCParameterAssert(configureBlock != nil);
+    NSCParameterAssert(sizeBlock != nil);
     if (self = [super init]) {
         _identifier = [identifier copy];
         _configureBlock = [configureBlock copy];
@@ -80,7 +80,7 @@
 }
 
 - (UICollectionViewCell *)cellForItemAtIndex:(NSInteger)index {
-    IGParameterAssert(index == 0);
+    NSCParameterAssert(index == 0);
     id cell;
     id<IGListCollectionContext> collectionContext = self.collectionContext;
     if ([self.nibName length] > 0) {

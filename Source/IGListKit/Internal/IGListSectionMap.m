@@ -7,7 +7,7 @@
 
 #import "IGListSectionMap.h"
 
-#import <IGListDiffKit/IGListAssert.h>
+#import "IGListAssert.h"
 
 #import "IGListSectionControllerInternal.h"
 
@@ -24,7 +24,7 @@
 @implementation IGListSectionMap
 
 - (instancetype)initWithMapTable:(NSMapTable *)mapTable {
-    IGParameterAssert(mapTable != nil);
+    NSCParameterAssert(mapTable != nil);
 
     if (self = [super init]) {
         _objectToSectionControllerMap = [mapTable copy];
@@ -46,7 +46,7 @@
 }
 
 - (NSInteger)sectionForSectionController:(IGListSectionController *)sectionController {
-    IGParameterAssert(sectionController != nil);
+    NSCParameterAssert(sectionController != nil);
 
     NSNumber *index = [self.sectionControllerToSectionMap objectForKey:sectionController];
     return index != nil ? [index integerValue] : NSNotFound;
@@ -57,7 +57,7 @@
 }
 
 - (void)updateWithObjects:(NSArray *)objects sectionControllers:(NSArray *)sectionControllers {
-    IGParameterAssert(objects.count == sectionControllers.count);
+    NSCParameterAssert(objects.count == sectionControllers.count);
 
     [self reset];
 
@@ -80,7 +80,7 @@
 }
 
 - (nullable IGListSectionController *)sectionControllerForObject:(id)object {
-    IGParameterAssert(object != nil);
+    NSCParameterAssert(object != nil);
 
     return [self.objectToSectionControllerMap objectForKey:object];
 }
@@ -95,7 +95,7 @@
 }
 
 - (NSInteger)sectionForObject:(id)object {
-    IGParameterAssert(object != nil);
+    NSCParameterAssert(object != nil);
 
     id sectionController = [self sectionControllerForObject:object];
     if (sectionController == nil) {
@@ -117,7 +117,7 @@
 }
 
 - (void)updateObject:(id)object {
-    IGParameterAssert(object != nil);
+    NSCParameterAssert(object != nil);
     const NSInteger section = [self sectionForObject:object];
     id sectionController = [self sectionControllerForObject:object];
     [self.sectionControllerToSectionMap setObject:@(section) forKey:sectionController];
@@ -126,7 +126,7 @@
 }
 
 - (void)enumerateUsingBlock:(void (^)(id object, IGListSectionController *sectionController, NSInteger section, BOOL *stop))block {
-    IGParameterAssert(block != nil);
+    NSCParameterAssert(block != nil);
 
     BOOL stop = NO;
     NSArray *objects = self.objects;

@@ -7,11 +7,11 @@
 
 #import "IGListAdapterUpdaterHelpers.h"
 
-#import <IGListDiffKit/IGListAssert.h>
-#import <IGListDiffKit/IGListBatchUpdateData.h>
-#import <IGListDiffKit/IGListDiffable.h>
-#import <IGListDiffKit/IGListExperiments.h>
-#import <IGListDiffKit/IGListIndexSetResult.h>
+#import "IGListAssert.h"
+#import "IGListBatchUpdateData.h"
+#import "IGListDiffable.h"
+#import "IGListExperiments.h"
+#import "IGListIndexSetResult.h"
 
 #import "IGListBatchUpdates.h"
 #import "IGListReloadIndexPath.h"

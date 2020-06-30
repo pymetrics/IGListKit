@@ -7,7 +7,7 @@
 
 #import "IGListAdapterProxy.h"
 
-#import <IGListDiffKit/IGListAssert.h>
+#import "IGListAssert.h"
 
 #import "IGListCollectionViewDelegateLayout.h"
 
@@ -56,7 +56,7 @@ static BOOL isInterceptedSelector(SEL sel) {
 - (instancetype)initWithCollectionViewTarget:(nullable id<UICollectionViewDelegate>)collectionViewTarget
                             scrollViewTarget:(nullable id<UIScrollViewDelegate>)scrollViewTarget
                                  interceptor:(IGListAdapter *)interceptor {
-    IGParameterAssert(interceptor != nil);
+    NSCParameterAssert(interceptor != nil);
     // -[NSProxy init] is undefined
     if (self) {
         _collectionViewTarget = collectionViewTarget;

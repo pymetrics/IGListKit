@@ -10,9 +10,9 @@
 #import <set>
 #import <unordered_set>
 
-#import <IGListDiffKit/IGListAssert.h>
-#import <IGListKit/IGListAdapter.h>
-#import <IGListKit/IGListSectionController.h>
+#import "IGListAssert.h"
+#import "IGListAdapter.h"
+#import "IGListSectionController.h"
 
 struct _IGListWorkingRangeHandlerIndexPath {
     NSInteger section;
@@ -67,28 +67,30 @@ typedef std::unordered_set<_IGListWorkingRangeHandlerIndexPath, _IGListWorkingRa
 
 - (void)willDisplayItemAtIndexPath:(NSIndexPath *)indexPath
                     forListAdapter:(IGListAdapter *)listAdapter {
-    IGParameterAssert(indexPath != nil);
-    IGParameterAssert(listAdapter != nil);
+    NSCParameterAssert(indexPath != nil);
+    NSCParameterAssert(listAdapter != nil);
 
-    _visibleSectionIndices.insert({
+    _IGListWorkingRangeHandlerIndexPath idxPath = {
         .section = indexPath.section,
         .row = indexPath.row,
         .hash = indexPath.hash
-    });
+    };
+    _visibleSectionIndices.insert(idxPath);
 
     [self _updateWorkingRangesWithListAdapter:listAdapter];
 }
 
 - (void)didEndDisplayingItemAtIndexPath:(NSIndexPath *)indexPath
                          forListAdapter:(IGListAdapter *)listAdapter {
-    IGParameterAssert(indexPath != nil);
-    IGParameterAssert(listAdapter != nil);
+    NSCParameterAssert(indexPath != nil);
+    NSCParameterAssert(listAdapter != nil);
 
-    _visibleSectionIndices.erase({
+    _IGListWorkingRangeHandlerIndexPath idxPath = {
         .section = indexPath.section,
         .row = indexPath.row,
         .hash = indexPath.hash
-    });
+    };
+    _visibleSectionIndices.erase(idxPath);
 
     [self _updateWorkingRangesWithListAdapter:listAdapter];
 }
@@ -121,7 +123,8 @@ typedef std::unordered_set<_IGListWorkingRangeHandlerIndexPath, _IGListWorkingRa
     for (NSInteger idx = start; idx < end; idx++) {
         id item = [listAdapter objectAtSection:idx];
         IGListSectionController *sectionController = [listAdapter sectionControllerForObject:item];
-        workingRangeSectionControllers.insert({sectionController});
+        _IGListWorkingRangeHandlerSectionControllerWrapper wrapper = {.sectionController = sectionController};
+        workingRangeSectionControllers.insert(wrapper);
     }
 
     // Tell any new section controllers that they have entered the working range

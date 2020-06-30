@@ -8,7 +8,7 @@
 #import "IGListAdapterUpdater.h"
 #import "IGListAdapterUpdaterInternal.h"
 
-#import <IGListDiffKit/IGListAssert.h>
+#import "IGListAssert.h"
 
 #import "IGListAdapterUpdaterHelpers.h"
 #import "IGListArrayUtilsInternal.h"
@@ -403,8 +403,8 @@ static NSUInteger IGListIdentifierHash(const void *item, NSUInteger (*size)(cons
                   objectTransitionBlock:(IGListObjectTransitionBlock)objectTransitionBlock
                              completion:(IGListUpdatingCompletion)completion {
     IGAssertMainThread();
-    IGParameterAssert(collectionViewBlock != nil);
-    IGParameterAssert(objectTransitionBlock != nil);
+    NSCParameterAssert(collectionViewBlock != nil);
+    NSCParameterAssert(objectTransitionBlock != nil);
 
     // only update the items that we are coming from if it has not been set
     // this allows multiple updates to be called while an update is already in progress, and the transition from > to
@@ -434,8 +434,8 @@ static NSUInteger IGListIdentifierHash(const void *item, NSUInteger (*size)(cons
                             itemUpdates:(void (^)(void))itemUpdates
                              completion:(void (^)(BOOL))completion {
     IGAssertMainThread();
-    IGParameterAssert(collectionViewBlock != nil);
-    IGParameterAssert(itemUpdates != nil);
+    NSCParameterAssert(collectionViewBlock != nil);
+    NSCParameterAssert(itemUpdates != nil);
 
     IGListBatchUpdates *batchUpdates = self.batchUpdates;
     if (completion != nil) {
@@ -459,8 +459,8 @@ static NSUInteger IGListIdentifierHash(const void *item, NSUInteger (*size)(cons
 
 - (void)insertItemsIntoCollectionView:(UICollectionView *)collectionView indexPaths:(NSArray <NSIndexPath *> *)indexPaths {
     IGAssertMainThread();
-    IGParameterAssert(collectionView != nil);
-    IGParameterAssert(indexPaths != nil);
+    NSCParameterAssert(collectionView != nil);
+    NSCParameterAssert(indexPaths != nil);
     if (self.state == IGListBatchUpdateStateExecutingBatchUpdateBlock) {
         [self.batchUpdates.itemInserts addObjectsFromArray:indexPaths];
     } else {
@@ -471,8 +471,8 @@ static NSUInteger IGListIdentifierHash(const void *item, NSUInteger (*size)(cons
 
 - (void)deleteItemsFromCollectionView:(UICollectionView *)collectionView indexPaths:(NSArray <NSIndexPath *> *)indexPaths {
     IGAssertMainThread();
-    IGParameterAssert(collectionView != nil);
-    IGParameterAssert(indexPaths != nil);
+    NSCParameterAssert(collectionView != nil);
+    NSCParameterAssert(indexPaths != nil);
     if (self.state == IGListBatchUpdateStateExecutingBatchUpdateBlock) {
         [self.batchUpdates.itemDeletes addObjectsFromArray:indexPaths];
     } else {
@@ -509,7 +509,7 @@ static NSUInteger IGListIdentifierHash(const void *item, NSUInteger (*size)(cons
                           fromIndex:(NSInteger)fromIndex
                             toIndex:(NSInteger)toIndex {
     IGAssertMainThread();
-    IGParameterAssert(collectionView != nil);
+    NSCParameterAssert(collectionView != nil);
 
     // iOS expects interactive reordering to be movement of items not sections
     // after moving a single-item section controller,
@@ -549,8 +549,8 @@ static NSUInteger IGListIdentifierHash(const void *item, NSUInteger (*size)(cons
                    reloadUpdateBlock:(IGListReloadUpdateBlock)reloadUpdateBlock
                           completion:(nullable IGListUpdatingCompletion)completion {
     IGAssertMainThread();
-    IGParameterAssert(collectionViewBlock != nil);
-    IGParameterAssert(reloadUpdateBlock != nil);
+    NSCParameterAssert(collectionViewBlock != nil);
+    NSCParameterAssert(reloadUpdateBlock != nil);
 
     IGListUpdatingCompletion localCompletion = completion;
     if (localCompletion) {
@@ -564,8 +564,8 @@ static NSUInteger IGListIdentifierHash(const void *item, NSUInteger (*size)(cons
 
 - (void)reloadCollectionView:(UICollectionView *)collectionView sections:(NSIndexSet *)sections {
     IGAssertMainThread();
-    IGParameterAssert(collectionView != nil);
-    IGParameterAssert(sections != nil);
+    NSCParameterAssert(collectionView != nil);
+    NSCParameterAssert(sections != nil);
     if (self.state == IGListBatchUpdateStateExecutingBatchUpdateBlock) {
         [self.batchUpdates.sectionReloads addIndexes:sections];
     } else {

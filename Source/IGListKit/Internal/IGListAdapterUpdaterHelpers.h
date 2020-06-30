@@ -7,7 +7,7 @@
 
 #import <UIKit/UIKit.h>
 
-#import <IGListDiffKit/IGListExperiments.h>
+#import "IGListExperiments.h"
 
 @class IGListBatchUpdateData;
 @class IGListBatchUpdates;

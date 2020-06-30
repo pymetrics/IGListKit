@@ -7,11 +7,11 @@
 
 #import "IGListDisplayHandler.h"
 
-#import <IGListDiffKit/IGListAssert.h>
-#import <IGListKit/IGListAdapter.h>
-#import <IGListKit/IGListDisplayDelegate.h>
-#import <IGListKit/IGListSectionController.h>
-#import <IGListKit/IGListSectionControllerInternal.h>
+#import "IGListAssert.h"
+#import "IGListAdapter.h"
+#import "IGListDisplayDelegate.h"
+#import "IGListSectionController.h"
+#import "IGListSectionControllerInternal.h"
 
 @interface IGListDisplayHandler ()
 
@@ -41,10 +41,10 @@
               sectionController:(IGListSectionController *)sectionController
                          object:(id)object
                       indexPath:(NSIndexPath *)indexPath {
-    IGParameterAssert(view != nil);
-    IGParameterAssert(listAdapter != nil);
-    IGParameterAssert(object != nil);
-    IGParameterAssert(indexPath != nil);
+    NSCParameterAssert(view != nil);
+    NSCParameterAssert(listAdapter != nil);
+    NSCParameterAssert(object != nil);
+    NSCParameterAssert(indexPath != nil);
 
     [self.visibleViewObjectMap setObject:object forKey:view];
     NSCountedSet *visibleListSections = self.visibleListSections;
@@ -60,9 +60,9 @@
                    sectionController:(IGListSectionController *)sectionController
                               object:(id)object
                            indexPath:(NSIndexPath *)indexPath {
-    IGParameterAssert(view != nil);
-    IGParameterAssert(listAdapter != nil);
-    IGParameterAssert(indexPath != nil);
+    NSCParameterAssert(view != nil);
+    NSCParameterAssert(listAdapter != nil);
+    NSCParameterAssert(indexPath != nil);
 
     if (object == nil || sectionController == nil) {
         return;

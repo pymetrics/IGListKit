@@ -9,8 +9,8 @@
 
 #import <unordered_map>
 
-#import <IGListDiffKit/IGListAssert.h>
-#import <IGListDiffKit/IGListCompatibility.h>
+#import "IGListAssert.h"
+#import "IGListCompatibility.h"
 
 // Plucks the given move from available moves and turns it into a delete + insert
 static void convertMoveToDeleteAndInsert(NSMutableSet<IGListMoveIndex *> *moves,
@@ -54,13 +54,13 @@ static void convertMoveToDeleteAndInsert(NSMutableSet<IGListMoveIndex *> *moves,
                       deleteIndexPaths:(nonnull NSArray<NSIndexPath *> *)deleteIndexPaths
                       updateIndexPaths:(nonnull NSArray<NSIndexPath *> *)updateIndexPaths
                         moveIndexPaths:(nonnull NSArray<IGListMoveIndexPath *> *)moveIndexPaths {
-    IGParameterAssert(insertSections != nil);
-    IGParameterAssert(deleteSections != nil);
-    IGParameterAssert(moveSections != nil);
-    IGParameterAssert(insertIndexPaths != nil);
-    IGParameterAssert(deleteIndexPaths != nil);
-    IGParameterAssert(updateIndexPaths != nil);
-    IGParameterAssert(moveIndexPaths != nil);
+    NSCParameterAssert(insertSections != nil);
+    NSCParameterAssert(deleteSections != nil);
+    NSCParameterAssert(moveSections != nil);
+    NSCParameterAssert(insertIndexPaths != nil);
+    NSCParameterAssert(deleteIndexPaths != nil);
+    NSCParameterAssert(updateIndexPaths != nil);
+    NSCParameterAssert(moveIndexPaths != nil);
     if (self = [super init]) {
         NSMutableSet<IGListMoveIndex *> *mMoveSections = [moveSections mutableCopy];
         NSMutableIndexSet *mDeleteSections = [deleteSections mutableCopy];
