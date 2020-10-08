@@ -11,6 +11,7 @@
 #import "IGListMacros.h"
 #import "IGListAdapterUpdaterDelegate.h"
 #import "IGListUpdatingDelegate.h"
+#import "IGListAdapterUpdaterCompatible.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
