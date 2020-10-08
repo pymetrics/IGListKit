@@ -377,7 +377,7 @@
     [self.updater performReloadDataWithCollectionViewBlock:[self collectionViewBlock]];
 
     // without moves as inserts, we would assert b/c the # of items in each section changes
-    self.updater.movesAsDeletesInserts = YES;
+    self.updater.sectionMovesAsDeletesInserts = YES;
 
     XCTestExpectation *expectation = genExpectation;
     [self.updater performUpdateWithCollectionViewBlock:[self collectionViewBlock] fromObjects:from toObjectsBlock:to animated:YES objectTransitionBlock:self.updateBlock completion:^(BOOL finished) {
@@ -504,7 +504,7 @@
     NSArray<IGSectionObject *> *to = @[[IGSectionObject sectionWithObjects:@[]]];
     [[mockDelegate expect] listAdapterUpdater:self.updater willPerformBatchUpdatesWithCollectionView:self.collectionView fromObjects:self.dataSource.sections toObjects:to listIndexSetResult:[OCMArg checkWithBlock:^BOOL(IGListIndexSetResult *result) {
         return result.inserts.firstIndex == 0 && result.moves.count == 0 && result.updates.count == 0 && result.deletes.count == 0;
-    }]];
+    }] animated:NO];
     [[mockDelegate expect] listAdapterUpdater:self.updater didPerformBatchUpdates:OCMOCK_ANY collectionView:self.collectionView];
 
     XCTestExpectation *expectation = genExpectation;
@@ -707,7 +707,7 @@
     [mockDelegate setExpectationOrderMatters:YES];
     [[mockDelegate expect] listAdapterUpdater:self.updater willPerformBatchUpdatesWithCollectionView:self.collectionView fromObjects:from toObjects:to listIndexSetResult:[OCMArg checkWithBlock:^BOOL(IGListIndexSetResult *result) {
         return result.inserts.count == 0 && result.deletes.count == 0 && result.moves.count == 0 && result.updates.firstIndex == 0;
-    }]];
+    }] animated:NO];
     [[mockDelegate expect] listAdapterUpdater:self.updater didPerformBatchUpdates:expectedBatchUpdateData collectionView:self.collectionView];
 
     XCTestExpectation *expectation = genExpectation;
@@ -773,8 +773,6 @@
 }
 
 - (void)test_whenPerformingUpdatesMultipleTimesInARow_thenUpdateWorks {
-    self.updater.experiments |= IGListExperimentSkipLayoutBeforeUpdate;
-
     NSArray *objects1 = @[
         [IGSectionObject sectionWithObjects:@[@0]]
     ];
@@ -814,6 +812,44 @@
     [self waitForExpectationsWithTimeout:30 handler:nil];
 }
 
+- (void)test_whenPerformingUpdate_thatCallsDiffingDelegate {
+    self.updater.experiments |= IGListExperimentBackgroundDiffing;
+
+    NSArray *from = @[
+        [IGSectionObject sectionWithObjects:@[] identifier:@"0"]
+    ];
+    NSArray *to = @[
+        [IGSectionObject sectionWithObjects:@[] identifier:@"0"],
+        [IGSectionObject sectionWithObjects:@[] identifier:@"1"]
+    ];
+    IGListToObjectBlock toBlock = ^NSArray *{
+        return to;
+    };
+
+    self.dataSource.sections = from;
+    [self.updater performReloadDataWithCollectionViewBlock:[self collectionViewBlock]];
+
+    id mockDelegate = [OCMockObject niceMockForProtocol:@protocol(IGListAdapterUpdaterDelegate)];
+    self.updater.delegate = mockDelegate;
+    [mockDelegate setExpectationOrderMatters:YES];
+    [[mockDelegate expect] listAdapterUpdater:self.updater willDiffFromObjects:from toObjects:to];
+    [[mockDelegate expect] listAdapterUpdater:self.updater didDiffWithResults:[OCMArg checkWithBlock:^BOOL(IGListIndexSetResult *result) {
+        return [result.inserts isEqualToIndexSet:[NSIndexSet indexSetWithIndex:1]]
+        && result.deletes.count == 0
+        && result.updates.count == 0
+        && result.moves.count == 0;
+    }] onBackgroundThread:YES];
+
+    XCTestExpectation *expectation = genExpectation;
+
+    [self.updater performUpdateWithCollectionViewBlock:[self collectionViewBlock] fromObjects:from toObjectsBlock:toBlock animated:NO objectTransitionBlock:self.updateBlock completion:^(BOOL finished) {
+        [expectation fulfill];
+    }];
+    waitExpectation;
+    [mockDelegate verify];
+}
+
+
 # pragma mark - preferItemReloadsFroSectionReloads
 
 - (void)test_whenReloadIsCalledWithSameItemCount_andPreferItemReload_updateIndexPathsHappen {
@@ -835,7 +871,7 @@
     [mockDelegate setExpectationOrderMatters:YES];
     [[mockDelegate expect] listAdapterUpdater:self.updater willPerformBatchUpdatesWithCollectionView:self.collectionView fromObjects:from toObjects:to listIndexSetResult:[OCMArg checkWithBlock:^BOOL(IGListIndexSetResult *result) {
         return result.inserts.count == 0 && result.deletes.count == 0 && result.moves.count == 0 && result.updates.firstIndex == 0;
-    }]];
+    }] animated:NO];
     [[mockDelegate expect] listAdapterUpdater:self.updater didPerformBatchUpdates:expectedBatchUpdateData collectionView:self.collectionView];
 
     XCTestExpectation *expectation = genExpectation;
@@ -867,7 +903,7 @@
     [mockDelegate setExpectationOrderMatters:YES];
     [[mockDelegate expect] listAdapterUpdater:self.updater willPerformBatchUpdatesWithCollectionView:self.collectionView fromObjects:from toObjects:to listIndexSetResult:[OCMArg checkWithBlock:^BOOL(IGListIndexSetResult *result) {
         return result.inserts.count == 0 && result.deletes.count == 0 && result.moves.count == 0 && result.updates.firstIndex == 0;
-    }]];
+    }] animated:NO];
     [[mockDelegate expect] listAdapterUpdater:self.updater didPerformBatchUpdates:expectedBatchUpdateData collectionView:self.collectionView];
 
     XCTestExpectation *expectation = genExpectation;
@@ -905,7 +941,7 @@
         }
         // Make sure we note that index 1 is updated (id2 from @[@2] -> @[@22], "id1" moved from section 0 -> 1, and "id2" moved from section 1 -> 0
         return result.updates.firstIndex == 1 && result.moves.count == 2 && [result.moves containsObject:[[IGListMoveIndex alloc] initWithFrom:0 to:1]] && [result.moves containsObject:[[IGListMoveIndex alloc] initWithFrom:1 to:0]];
-    }]];
+    }] animated:NO];
     [[mockDelegate expect] listAdapterUpdater:self.updater didPerformBatchUpdates:expectedBatchUpdateData collectionView:self.collectionView];
 
     XCTestExpectation *expectation = genExpectation;
@@ -943,7 +979,7 @@
         }
         // Make sure we note that index 1 is updated (id2 from @[@2] -> @[@22], "id1" moved from section 0 -> 1, and "id2" moved from section 1 -> 0
         return result.updates.firstIndex == 1 && result.moves.count == 2 && [result.moves containsObject:[[IGListMoveIndex alloc] initWithFrom:0 to:1]] && [result.moves containsObject:[[IGListMoveIndex alloc] initWithFrom:1 to:0]];
-    }]];
+    }] animated:NO];
     [[mockDelegate expect] listAdapterUpdater:self.updater didPerformBatchUpdates:expectedBatchUpdateData collectionView:self.collectionView];
 
     XCTestExpectation *expectation = genExpectation;
@@ -983,7 +1019,7 @@
         }
         // Make sure we note that index 1 is updated (id2 from @[@2] -> @[@22], "id1" moved from section 0 -> 1, "id2" moved from section 1 -> 0
         return result.updates.firstIndex == 1 && result.moves.count == 2 && [result.moves containsObject:[[IGListMoveIndex alloc] initWithFrom:0 to:1]] && [result.moves containsObject:[[IGListMoveIndex alloc] initWithFrom:1 to:0]];
-    }]];
+    }] animated:NO];
     [[mockDelegate expect] listAdapterUpdater:self.updater didPerformBatchUpdates:expectedBatchUpdateData collectionView:self.collectionView];
 
     XCTestExpectation *expectation = genExpectation;
@@ -1018,7 +1054,7 @@
         }
         // Make sure we note that index 1 is updated (id1 from @[@1] -> @[@2]), and "id2" was inserted at index 1
         return result.updates.firstIndex == 0 && result.inserts.firstIndex == 1;
-    }]];
+    }] animated:NO];
     [[mockDelegate expect] listAdapterUpdater:self.updater didPerformBatchUpdates:expectedBatchUpdateData collectionView:self.collectionView];
 
     XCTestExpectation *expectation = genExpectation;

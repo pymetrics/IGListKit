@@ -95,11 +95,6 @@ NS_SWIFT_NAME(ListCollectionViewLayout)
 @property (nonatomic, assign) BOOL showHeaderWhenEmpty;
 
 /**
- A bitmask of experiments to conduct on the adapter.
- */
-@property (nonatomic, assign) IGListExperiment experiments;
-
-/**
  Create and return a new collection view layout.
 
  @param stickyHeaders Set to `YES` to stick section headers to the top of the bounds while scrolling.

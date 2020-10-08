@@ -17,7 +17,19 @@
 #import "IGListReloadIndexPath.h"
 #import "UICollectionView+IGListBatchUpdateData.h"
 
+typedef void (^IGListAdapterUpdaterDiffResultBlock)(IGListIndexSetResult *);
+typedef void (^IGListAdapterUpdaterBlock)(void);
+typedef void (^IGListAdapterUpdaterCompletionBlock)(BOOL);
+
 @implementation IGListAdapterUpdater
+
+@synthesize delegate = _delegate;
+@synthesize sectionMovesAsDeletesInserts = _sectionMovesAsDeletesInserts;
+@synthesize singleItemSectionUpdates = _singleItemSectionUpdates;
+@synthesize preferItemReloadsForSectionReloads = _preferItemReloadsForSectionReloads;
+@synthesize allowsBackgroundReloading = _allowsBackgroundReloading;
+@synthesize allowsReloadingOnTooManyUpdates = _allowsReloadingOnTooManyUpdates;
+@synthesize experiments = _experiments;
 
 - (instancetype)init {
     IGAssertMainThread();
@@ -112,6 +124,7 @@
     void (^objectTransitionBlock)(NSArray *) = [self.objectTransitionBlock copy];
     const BOOL animated = self.queuedUpdateIsAnimated;
     const BOOL allowsReloadingOnTooManyUpdates = self.allowsReloadingOnTooManyUpdates;
+    const IGListExperiment experiments = self.experiments;
     IGListBatchUpdates *batchUpdates = self.batchUpdates;
 
     // clean up all state so that new updates can be coalesced while the current update is in flight
@@ -197,12 +210,6 @@
         return;
     }
 
-    const IGListExperiment experiments = self.experiments;
-
-    IGListIndexSetResult *(^performDiff)(void) = ^{
-        return IGListDiffExperiment(fromObjects, toObjects, IGListDiffEquality, experiments);
-    };
-
     // block executed in the first param block of -[UICollectionView performBatchUpdates:completion:]
     void (^batchUpdatesBlock)(IGListIndexSetResult *result) = ^(IGListIndexSetResult *result){
         executeUpdateBlocks();
@@ -224,13 +231,16 @@
                                        moveIndexPaths:@[]];
         } else {
             self.applyingUpdateData = IGListApplyUpdatesToCollectionView(collectionView,
-                                                                         result,
-                                                                         self.batchUpdates,
+                                                                         result,                                                                         
+                                                                         self.batchUpdates.sectionReloads,
+                                                                         self.batchUpdates.itemInserts,
+                                                                         self.batchUpdates.itemDeletes,
+                                                                         self.batchUpdates.itemReloads,
+                                                                         self.batchUpdates.itemMoves,
                                                                          fromObjects,
-                                                                         experiments,
-                                                                         self.movesAsDeletesInserts,
+                                                                         self.sectionMovesAsDeletesInserts,
                                                                          self.preferItemReloadsForSectionReloads);
-}
+        }
 
         [self _cleanStateAfterUpdates];
         [self _performBatchUpdatesItemBlockApplied];
@@ -264,26 +274,19 @@
 willPerformBatchUpdatesWithCollectionView:collectionView
                          fromObjects:fromObjects
                            toObjects:toObjects
-                  listIndexSetResult:result];
-        if (animated) {
-            [collectionView performBatchUpdates:^{
-                batchUpdatesBlock(result);
-            } completion:batchUpdatesCompletionBlock];
-        } else {
-            [UIView performWithoutAnimation:^{
-                [collectionView performBatchUpdates:^{
-                    batchUpdatesBlock(result);
-                } completion:batchUpdatesCompletionBlock];
-            }];
-        }
+                  listIndexSetResult:result
+                            animated:animated];
+
+        // Wrap `[UICollectionView performBatchUpdates ...]` so that in case it crashes, the first app symbol will not be a block. A block name includes the
+        // line number, which means if you change the block line number, it will be categorized as a different crash. This makes tracking crashes
+        // across multiple app-versions a pain.
+        IGListAdapterUpdaterPerformBatchUpdate(collectionView, animated, ^{
+            batchUpdatesBlock(result);
+        }, batchUpdatesCompletionBlock);
     };
 
     // block that executes the batch update and exception handling
     void (^tryToPerformUpdate)(IGListIndexSetResult *) = ^(IGListIndexSetResult *result){
-        if (!IGListExperimentEnabled(experiments, IGListExperimentSkipLayoutBeforeUpdate)) {
-            [collectionView layoutIfNeeded];
-        }
-
         @try {
             if (collectionView.dataSource == nil) {
                 // If the data source is nil, we should not call any collection view update.
@@ -305,17 +308,12 @@ willPerformBatchUpdatesWithCollectionView:collectionView
         }
     };
 
-    if (IGListExperimentEnabled(experiments, IGListExperimentBackgroundDiffing)) {
-        dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
-            IGListIndexSetResult *result = performDiff();
-            dispatch_async(dispatch_get_main_queue(), ^{
-                tryToPerformUpdate(result);
-            });
-        });
-    } else {
-        IGListIndexSetResult *result = performDiff();
+    const BOOL onBackgroundThread = IGListExperimentEnabled(experiments, IGListExperimentBackgroundDiffing);
+    [delegate listAdapterUpdater:self willDiffFromObjects:fromObjects toObjects:toObjects];
+    IGListAdapterUpdaterPerformDiffing(fromObjects, toObjects, IGListDiffEquality, onBackgroundThread, ^(IGListIndexSetResult *result){
+        [delegate listAdapterUpdater:self didDiffWithResults:result onBackgroundThread:onBackgroundThread];
         tryToPerformUpdate(result);
-    }
+    });
 }
 
 - (void)_beginPerformBatchUpdatesToObjects:(NSArray *)toObjects {
@@ -372,7 +370,6 @@ willPerformBatchUpdatesWithCollectionView:collectionView
         }
     });
 }
-
 
 #pragma mark - IGListUpdatingDelegate
 
@@ -574,5 +571,34 @@ static NSUInteger IGListIdentifierHash(const void *item, NSUInteger (*size)(cons
     }
 }
 
+#pragma mark - Helpers
+
+static void IGListAdapterUpdaterPerformBatchUpdate(UICollectionView *collectionView, BOOL animated, IGListAdapterUpdaterBlock updates, IGListAdapterUpdaterCompletionBlock completion) {
+    if (animated) {
+        [collectionView performBatchUpdates:updates completion:completion];
+    } else {
+        [UIView performWithoutAnimation:^{
+            [collectionView performBatchUpdates:updates completion:completion];
+        }];
+    }
+}
+
+static void IGListAdapterUpdaterPerformDiffing(NSArray<id<IGListDiffable>> *_Nullable oldArray,
+                                               NSArray<id<IGListDiffable>> *_Nullable newArray,
+                                               IGListDiffOption option,
+                                               BOOL onBackgroundThread,
+                                               IGListAdapterUpdaterDiffResultBlock completion) {
+    if (onBackgroundThread) {
+        dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+            IGListIndexSetResult *result = IGListDiff(oldArray, newArray, option);
+            dispatch_async(dispatch_get_main_queue(), ^{
+                completion(result);
+            });
+        });
+    } else {
+        IGListIndexSetResult *result = IGListDiff(oldArray, newArray, option);
+        completion(result);
+    }
+}
 
 @end
